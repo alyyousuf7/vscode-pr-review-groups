@@ -2,6 +2,19 @@
 
 A VSCode extension that buckets a PR's changed files into clickable groups, opens base↔working diffs on click, and syncs each file's reviewed checkbox to GitHub's real viewed state — so you can go through a PR file by file without losing your place.
 
+**Install:** `code --install-extension aliyousuf.pr-review-groups` · [Marketplace listing](https://marketplace.visualstudio.com/items?itemName=aliyousuf.pr-review-groups)
+
+<table>
+  <tr>
+    <td><img src="media/screenshot-flat.png" alt="Flat list view" width="420"/></td>
+    <td><img src="media/screenshot-nested.png" alt="Nested folder tree view" width="420"/></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Flat list — files appear with inline paths</sub></td>
+    <td align="center"><sub>Nested folder tree — toggle in the toolbar</sub></td>
+  </tr>
+</table>
+
 ## Features
 
 - **Grouped review** — define groups (by domain, change type, risk tier, "mechanical vs needs-review", …) in a local `.vscode/review-groups.json`. Each group is a clickable bucket in the sidebar.
