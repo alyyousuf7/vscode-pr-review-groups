@@ -1,0 +1,352 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-__NONCE__';"
+    />
+    <style>
+      html,
+      body {
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      body {
+        padding: 8px 12px;
+        margin: 0;
+        font-family: var(--vscode-font-family);
+        font-size: var(--vscode-font-size);
+        color: var(--vscode-foreground);
+      }
+      .hidden {
+        display: none !important;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .between {
+        justify-content: space-between;
+      }
+      .title {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .muted {
+        color: var(--vscode-descriptionForeground);
+        white-space: nowrap;
+      }
+      .meta {
+        margin-top: 3px;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .reflink {
+        color: var(--vscode-textLink-foreground);
+        cursor: pointer;
+      }
+      .reflink:hover {
+        text-decoration: underline;
+      }
+      .dot {
+        color: var(--vscode-descriptionForeground);
+        margin: 0 6px;
+      }
+      .bar {
+        height: 6px;
+        border-radius: 3px;
+        background: var(--vscode-input-background);
+        border: 1px solid var(--vscode-input-border, transparent);
+        overflow: hidden;
+        margin: 8px 0 5px;
+      }
+      .fill {
+        height: 100%;
+        width: 0%;
+        background: var(--vscode-charts-green, #89d185);
+        transition: width 0.15s ease;
+      }
+      .stats {
+        font-size: 0.92em;
+      }
+      .nums {
+        font-variant-numeric: tabular-nums;
+      }
+      .add {
+        color: var(--vscode-gitDecoration-addedResourceForeground, #89d185);
+      }
+      .del {
+        color: var(--vscode-gitDecoration-deletedResourceForeground, #f14c4c);
+        margin-left: 8px;
+      }
+
+      /* welcome (empty) state */
+      #welcome {
+        padding: 6px 2px 12px;
+      }
+      .badge {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--vscode-badge-background);
+        color: var(--vscode-badge-foreground);
+        margin-bottom: 10px;
+      }
+      .badge svg {
+        width: 20px;
+        height: 20px;
+      }
+      .wtitle {
+        font-size: 1.08em;
+        font-weight: 600;
+        margin: 0 0 6px;
+      }
+      .wbody {
+        color: var(--vscode-descriptionForeground);
+        line-height: 1.45;
+        margin: 0 0 10px;
+        white-space: normal;
+      }
+      .chip {
+        font-family: var(--vscode-editor-font-family, monospace);
+        background: var(--vscode-textCodeBlock-background, rgba(127, 127, 127, 0.18));
+        border-radius: 4px;
+        padding: 1px 5px;
+        color: var(--vscode-foreground);
+      }
+      .hint {
+        display: flex;
+        gap: 7px;
+        align-items: flex-start;
+        color: var(--vscode-descriptionForeground);
+        line-height: 1.4;
+        margin: 9px 0;
+      }
+      .hint .dot {
+        color: var(--vscode-charts-green, #89d185);
+        flex: 0 0 auto;
+      }
+      .hint b {
+        color: var(--vscode-foreground);
+        font-weight: 600;
+      }
+      .note {
+        color: var(--vscode-descriptionForeground);
+        line-height: 1.4;
+        margin: 12px 0 0;
+      }
+      .note a {
+        color: var(--vscode-textLink-foreground);
+        cursor: pointer;
+      }
+      .note a:hover {
+        text-decoration: underline;
+      }
+      .detrow {
+        display: flex;
+        align-items: center;
+        color: var(--vscode-descriptionForeground);
+        margin: 8px 0;
+      }
+      .spin {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-right: 7px;
+        border: 2px solid var(--vscode-descriptionForeground);
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .prcard {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        padding: 8px 10px;
+        border-radius: 6px;
+        background: var(--vscode-textCodeBlock-background, rgba(127, 127, 127, 0.12));
+        margin: 8px 0;
+      }
+      .prnum {
+        color: var(--vscode-descriptionForeground);
+        font-variant-numeric: tabular-nums;
+        flex: 0 0 auto;
+      }
+      .prtitle {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      button {
+        font-family: inherit;
+        font-size: inherit;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 12px;
+        cursor: pointer;
+      }
+      .primary {
+        background: var(--vscode-button-background);
+        color: var(--vscode-button-foreground);
+      }
+      .primary:hover {
+        background: var(--vscode-button-hoverBackground);
+      }
+      .secondary {
+        background: var(--vscode-button-secondaryBackground);
+        color: var(--vscode-button-secondaryForeground);
+        border: 1px solid var(--vscode-button-border, var(--vscode-widget-border, rgba(128, 128, 128, 0.45)));
+      }
+      .secondary:hover {
+        background: var(--vscode-button-secondaryHoverBackground);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="pr" class="hidden">
+      <div class="title" id="title">…</div>
+      <div class="meta" id="meta">
+        <a class="reflink hidden" id="num" title="Open PR on GitHub"></a
+        ><span class="dot hidden" id="refsep">·</span
+        ><a class="reflink hidden" id="jira" title="Open JIRA ticket"></a>
+      </div>
+      <div class="bar"><div class="fill" id="fill"></div></div>
+      <div class="row between stats">
+        <span class="muted nums" id="viewed">0/0 viewed</span>
+        <span class="nums"
+          ><span class="add" id="add">+0</span><span class="del" id="del">−0</span></span
+        >
+      </div>
+    </div>
+
+    <div id="welcome" class="hidden">
+      <div class="badge" aria-hidden="true">
+        <svg
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5.5 3.5h8M5.5 8h8M5.5 12.5h8" />
+          <path d="M1.6 3.4l1 1 1.4-1.8M1.6 7.9l1 1 1.4-1.8M1.6 12.4l1 1 1.4-1.8" />
+        </svg>
+      </div>
+      <p class="wtitle">No review groups loaded</p>
+
+      <div id="detecting" class="hidden detrow">
+        <span class="spin"></span>Checking this branch for a PR on GitHub…
+      </div>
+
+      <div id="found" class="hidden">
+        <p class="wbody">Found an open PR for this branch:</p>
+        <div class="prcard">
+          <span class="prnum" id="dnum"></span><span class="prtitle" id="dtitle"></span>
+        </div>
+        <p class="wbody">
+          Set up groups to review it — each file's reviewed state syncs to GitHub.
+        </p>
+        <div class="btns"><button class="primary" id="setup">Set up review groups</button></div>
+        <p class="note"><a id="manualFromFound">Or start manually (local-only review)</a></p>
+      </div>
+
+      <div id="nopr" class="hidden">
+        <p class="wbody">
+          <b id="noprHead">This branch has no open PR on GitHub.</b> The extension tracks a PR's
+          files against its base, so it's most useful from a worktree/branch that has one.
+        </p>
+        <p class="wbody">
+          You can still group this branch's changed-vs-base files locally — reviewed state stays on
+          this machine until a PR exists.
+        </p>
+        <div class="btns">
+          <button class="secondary hidden" id="signin">Sign in to GitHub</button>
+          <button class="secondary" id="manual">Set up manually</button>
+          <button class="secondary" id="reload">Reload</button>
+        </div>
+      </div>
+
+      <p class="note" id="skillNote">
+        Prefer it done for you? Have an AI coding assistant run the
+        <span class="chip">/pr-review-groups</span> skill — tell it how you'd like the files grouped
+        (by domain, change type, risk, …) and it writes the config. Once it's done, this view loads
+        it automatically — or hit <b>Reload</b>.
+      </p>
+    </div>
+
+    <script nonce="__NONCE__">
+      const vscode = acquireVsCodeApi();
+      const $ = id => document.getElementById(id);
+      const fmt = n => (n || 0).toLocaleString('en-US');
+      const show = (id, on) => $(id).classList.toggle('hidden', !on);
+      const send = t => () => vscode.postMessage({ type: t });
+      $('num').addEventListener('click', send('openPR'));
+      $('jira').addEventListener('click', send('openJira'));
+      $('setup').addEventListener('click', send('setup'));
+      $('signin').addEventListener('click', send('signin'));
+      $('manual').addEventListener('click', send('createGroup'));
+      $('manualFromFound').addEventListener('click', send('createGroup'));
+      $('reload').addEventListener('click', send('reload'));
+      window.addEventListener('message', ev => {
+        const m = ev.data;
+        if (m.type !== 'state') return;
+        show('pr', m.hasConfig);
+        show('welcome', !m.hasConfig);
+        if (m.hasConfig) {
+          $('title').textContent = m.title;
+          const hasNum = !!m.number;
+          const hasJira = !!m.jiraKey;
+          $('num').textContent = hasNum ? '#' + m.number : '';
+          $('num').classList.toggle('hidden', !hasNum);
+          $('jira').textContent = m.jiraKey || '';
+          $('jira').classList.toggle('hidden', !hasJira);
+          $('refsep').classList.toggle('hidden', !(hasNum && hasJira));
+          $('meta').classList.toggle('hidden', !(hasNum || hasJira));
+          const pct = m.total ? Math.round((m.done / m.total) * 100) : 0;
+          $('fill').style.width = pct + '%';
+          $('viewed').textContent =
+            (m.loading ? '…' : fmt(m.done)) + '/' + fmt(m.total) + ' viewed';
+          $('add').textContent = '+' + fmt(m.additions);
+          $('del').textContent = '−' + fmt(m.deletions);
+          return;
+        }
+        const st = (m.detect && m.detect.state) || 'idle';
+        show('detecting', st === 'loading');
+        show('found', st === 'found');
+        show('nopr', st === 'none' || st === 'noauth' || st === 'error');
+        show('skillNote', st !== 'loading');
+        if (st === 'found' && m.detect.pr) {
+          $('dnum').textContent = '#' + m.detect.pr.number;
+          $('dtitle').textContent = m.detect.pr.title || '';
+        }
+        const noauth = st === 'noauth';
+        $('noprHead').textContent = noauth
+          ? "Not signed in to GitHub, so this branch's PR can't be detected."
+          : 'This branch has no open PR on GitHub.';
+        // Promote the main action of each state to the colored primary button.
+        $('signin').className = noauth ? 'primary' : 'primary hidden';
+        $('manual').className = noauth ? 'secondary' : 'primary';
+      });
+      vscode.postMessage({ type: 'ready' });
+    </script>
+  </body>
+</html>

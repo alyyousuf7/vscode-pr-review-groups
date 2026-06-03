@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.vsix
+.DS_Store
+*.log
+.vscode-test/
+
+# Yarn 4 (node-modules linker — only commit lockfile + yarnrc)
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

@@ -1,0 +1,363 @@
+{
+  "name": "pr-review-groups",
+  "displayName": "PR Review Groups",
+  "description": "Group changed files into clickable buckets, diff against base, and sync per-file reviewed state to GitHub.",
+  "version": "0.1.0",
+  "publisher": "aliyousuf",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alyyousuf7/vscode-pr-review-groups.git"
+  },
+  "homepage": "https://github.com/alyyousuf7/vscode-pr-review-groups#readme",
+  "bugs": {
+    "url": "https://github.com/alyyousuf7/vscode-pr-review-groups/issues"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "packageManager": "yarn@4.16.0",
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node20 --format=cjs --external:vscode --loader:.html=text --sourcemap",
+    "watch": "yarn build --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "vscode:prepublish": "yarn typecheck && yarn lint && yarn build",
+    "package": "vsce package --no-dependencies",
+    "publish": "vsce publish --no-dependencies",
+    "release:patch": "npm version patch -m \"chore: release v%s\" && git push --follow-tags",
+    "release:minor": "npm version minor -m \"chore: release v%s\" && git push --follow-tags",
+    "release:major": "npm version major -m \"chore: release v%s\" && git push --follow-tags",
+    "install:local": "code --install-extension pr-review-groups-$(node -p \"require('./package.json').version\").vsix --force",
+    "uninstall:local": "code --uninstall-extension aliyousuf.pr-review-groups",
+    "clean": "rm -f *.vsix"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/vscode": "~1.95.0",
+    "@vscode/vsce": "^3.2.0",
+    "esbuild": "0.28.0",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.3",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.60.1"
+  },
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:.vscode/review-groups.json"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "PR Review Groups",
+      "properties": {
+        "prReviewGroups.jiraBaseUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Base URL for JIRA tickets, e.g. `https://your-org.atlassian.net/browse/`. When set, you can enter just a ticket key like `PROJ-123` when adding a JIRA link and it's combined with this base."
+        },
+        "prReviewGroups.gitExclude": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Automatically hide `.vscode/review-groups.json` from git locally by adding it to `.git/info/exclude` (a per-clone ignore list that is never committed and doesn't modify the tracked `.gitignore`). No effect if the file is already ignored or tracked."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "prReviewGroups",
+          "title": "PR Review Groups",
+          "icon": "$(checklist)"
+        }
+      ]
+    },
+    "views": {
+      "prReviewGroups": [
+        {
+          "type": "webview",
+          "id": "prReviewGroups.header",
+          "name": "Overview",
+          "initialSize": 1
+        },
+        {
+          "id": "prReviewGroups.tree",
+          "name": "Groups",
+          "icon": "$(checklist)",
+          "initialSize": 8,
+          "when": "prReviewGroups.hasConfig"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "prReviewGroups.reload",
+        "title": "Reload groups & viewed state",
+        "category": "PR Review",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "prReviewGroups.openConfig",
+        "title": "Open config file",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReviewGroups.openFile",
+        "title": "Open file",
+        "category": "PR Review",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "prReviewGroups.moveFile",
+        "title": "Move to group…",
+        "category": "PR Review",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "prReviewGroups.markUngrouped",
+        "title": "Move to Ungrouped",
+        "category": "PR Review",
+        "icon": "$(circle-slash)"
+      },
+      {
+        "command": "prReviewGroups.newGroup",
+        "title": "New group",
+        "category": "PR Review",
+        "icon": "$(new-collection)"
+      },
+      {
+        "command": "prReviewGroups.createFirstGroup",
+        "title": "Create first group (scaffold config)",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReviewGroups.setupFromPR",
+        "title": "Set up review groups from the branch's PR",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReviewGroups.signInAndDetect",
+        "title": "Sign in to GitHub & detect PR",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReviewGroups.linkPR",
+        "title": "Link GitHub PR (sync viewed state)",
+        "category": "PR Review",
+        "icon": "$(link)"
+      },
+      {
+        "command": "prReviewGroups.renameGroup",
+        "title": "Rename group",
+        "category": "PR Review",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "prReviewGroups.deleteGroup",
+        "title": "Delete group",
+        "category": "PR Review",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "prReviewGroups.setGroupIcon",
+        "title": "Set group icon…",
+        "category": "PR Review",
+        "icon": "$(symbol-color)"
+      },
+      {
+        "command": "prReviewGroups.setGroupDescription",
+        "title": "Set group description…",
+        "category": "PR Review",
+        "icon": "$(note)"
+      },
+      {
+        "command": "prReviewGroups.openOnGitHub",
+        "title": "Open PR on GitHub",
+        "category": "PR Review",
+        "icon": "$(github)"
+      },
+      {
+        "command": "prReviewGroups.openSlack",
+        "title": "Open Slack thread",
+        "category": "PR Review",
+        "icon": "media/slack.svg"
+      },
+      {
+        "command": "prReviewGroups.setSlack",
+        "title": "Set / change Slack thread",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReviewGroups.openJira",
+        "title": "Open JIRA ticket",
+        "category": "PR Review",
+        "icon": "$(milestone)"
+      },
+      {
+        "command": "prReviewGroups.setJira",
+        "title": "Set / change JIRA ticket",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReviewGroups.openSettings",
+        "title": "Manage PR links (Slack, JIRA)",
+        "category": "PR Review",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "prReviewGroups.findFiles",
+        "title": "Find / filter files",
+        "category": "PR Review",
+        "icon": "$(search)"
+      },
+      {
+        "command": "prReviewGroups.showUnviewedOnly",
+        "title": "Showing all files — click to show only unviewed",
+        "category": "PR Review",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "prReviewGroups.showAllFiles",
+        "title": "Showing only unviewed — click to show all files",
+        "category": "PR Review",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "prReviewGroups.showNested",
+        "title": "Flat list — click for folder tree",
+        "category": "PR Review",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "prReviewGroups.showFlat",
+        "title": "Folder tree — click for flat list",
+        "category": "PR Review",
+        "icon": "$(list-tree)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "prReviewGroups.openOnGitHub",
+          "when": "view == prReviewGroups.header && prReviewGroups.hasPrUrl",
+          "group": "navigation@0"
+        },
+        {
+          "command": "prReviewGroups.linkPR",
+          "when": "view == prReviewGroups.tree && prReviewGroups.unlinked",
+          "group": "navigation@4"
+        },
+        {
+          "command": "prReviewGroups.openSlack",
+          "when": "view == prReviewGroups.header && prReviewGroups.hasSlack",
+          "group": "navigation@1"
+        },
+        {
+          "command": "prReviewGroups.openJira",
+          "when": "view == prReviewGroups.header && prReviewGroups.hasJira",
+          "group": "navigation@2"
+        },
+        {
+          "command": "prReviewGroups.openSettings",
+          "when": "view == prReviewGroups.header && prReviewGroups.hasConfig",
+          "group": "navigation@9"
+        },
+        {
+          "command": "prReviewGroups.findFiles",
+          "when": "view == prReviewGroups.tree",
+          "group": "navigation@0"
+        },
+        {
+          "command": "prReviewGroups.newGroup",
+          "when": "view == prReviewGroups.tree && prReviewGroups.hasConfig",
+          "group": "navigation@3"
+        },
+        {
+          "command": "prReviewGroups.showNested",
+          "when": "view == prReviewGroups.tree && !prReviewGroups.nested",
+          "group": "navigation@2"
+        },
+        {
+          "command": "prReviewGroups.showFlat",
+          "when": "view == prReviewGroups.tree && prReviewGroups.nested",
+          "group": "navigation@2"
+        },
+        {
+          "command": "prReviewGroups.showUnviewedOnly",
+          "when": "view == prReviewGroups.tree && !prReviewGroups.unviewedOnly",
+          "group": "navigation@1"
+        },
+        {
+          "command": "prReviewGroups.showAllFiles",
+          "when": "view == prReviewGroups.tree && prReviewGroups.unviewedOnly",
+          "group": "navigation@1"
+        },
+        {
+          "command": "prReviewGroups.reload",
+          "when": "view == prReviewGroups.tree",
+          "group": "navigation@5"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "prReviewGroups.openFile",
+          "when": "view == prReviewGroups.tree && viewItem == file",
+          "group": "inline@1"
+        },
+        {
+          "command": "prReviewGroups.moveFile",
+          "when": "view == prReviewGroups.tree && viewItem == file",
+          "group": "inline@2"
+        },
+        {
+          "command": "prReviewGroups.moveFile",
+          "when": "view == prReviewGroups.tree && viewItem == file",
+          "group": "1_modify@1"
+        },
+        {
+          "command": "prReviewGroups.markUngrouped",
+          "when": "view == prReviewGroups.tree && viewItem == file",
+          "group": "1_modify@2"
+        },
+        {
+          "command": "prReviewGroups.renameGroup",
+          "when": "view == prReviewGroups.tree && viewItem == group",
+          "group": "inline@1"
+        },
+        {
+          "command": "prReviewGroups.deleteGroup",
+          "when": "view == prReviewGroups.tree && viewItem == group",
+          "group": "inline@2"
+        },
+        {
+          "command": "prReviewGroups.renameGroup",
+          "when": "view == prReviewGroups.tree && viewItem == group",
+          "group": "1_modify@1"
+        },
+        {
+          "command": "prReviewGroups.deleteGroup",
+          "when": "view == prReviewGroups.tree && viewItem == group",
+          "group": "1_modify@2"
+        },
+        {
+          "command": "prReviewGroups.setGroupIcon",
+          "when": "view == prReviewGroups.tree && viewItem == group",
+          "group": "2_config@1"
+        },
+        {
+          "command": "prReviewGroups.setGroupDescription",
+          "when": "view == prReviewGroups.tree && viewItem == group",
+          "group": "2_config@2"
+        }
+      ]
+    }
+  }
+}

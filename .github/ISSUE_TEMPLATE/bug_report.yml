@@ -1,0 +1,62 @@
+name: Bug report
+description: Something in the extension isn't working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug. A screenshot or short clip helps a lot.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps. Include what your `.vscode/review-groups.json` looked like if relevant.
+      placeholder: |
+        1. Open a branch with PR #123
+        2. Run "PR Review: …"
+        3. See …
+    validations:
+      required: true
+
+  - type: input
+    id: extension-version
+    attributes:
+      label: Extension version
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: vscode-version
+    attributes:
+      label: VSCode version
+      description: Help → About → "Version"
+      placeholder: e.g. 1.95.3
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: e.g. macOS 15.1 (arm64)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output / errors
+      description: Anything from the "PR Review Groups" output channel, or VSCode dev console errors.
+      render: shell
